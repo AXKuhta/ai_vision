@@ -12,7 +12,9 @@ from skimage.feature import canny
 from skimage.color import rgb2hsv
 import matplotlib.pyplot as plt
 
-# Line finding using the Probabilistic Hough Transform
+# - Read the image
+# - Convert to HSV
+# - Detect edges on S
 image = plt.imread("horizon.png")[:, :, :3]
 saturation = rgb2hsv(image)[:, :, 1]
 edges = canny(saturation, 0, 0.25, 1)
@@ -21,14 +23,13 @@ def debug_edges():
 	plt.imshow(edges)
 	plt.show()
 
+# - Hough transform
+# - 0.5deg resolution
 from skimage.transform import hough_line, hough_line_peaks
 
-# Classic straight-line Hough transform
-# Set a precision of 0.5 degree.
-tested_angles = np.linspace(-np.pi / 2, np.pi / 2, 360, endpoint=False)
+tested_angles = np.linspace(-np.pi / 2, np.pi / 2, 720, endpoint=False)
 h, theta, d = hough_line(edges, theta=tested_angles)
 
-# Generating figure 1
 fig, axes = plt.subplots(1, 3, figsize=(15, 6))
 ax = axes.ravel()
 
@@ -53,6 +54,8 @@ ax[2].set_ylim((image.shape[0], 0))
 ax[2].set_axis_off()
 ax[2].set_title('Detected lines')
 
+# - Draw lines
+# - Vertical lines greyed out
 def desmos_print(slope, x0, y0):
     print(f"{-slope:.3f}x + {(x0*slope - y0):.3f}")
     print(" ============= ")
@@ -73,6 +76,7 @@ for _, angle, dist in zip(*hough_line_peaks(h, theta, d)):
     if np.abs(angle) > np.deg2rad(20):
     	lines.append( [-slope, x0*slope - y0] )
 
+# - Draw line intersections
 def intersect_lines(line1, line2):
 	a, b = line1
 	u, v = line2
@@ -94,5 +98,18 @@ for a, b in combinations(lines, 2):
 	ylist.append(-y)
 
 ax[2].scatter(xlist, ylist)
+
+# - Find the horizon
+i = np.argmin(xlist)
+j = np.argmax(xlist)
+
+x0, y0 = xlist[i], ylist[i]
+x1, y1 = xlist[j], ylist[j]
+dy = y1 - y0
+dx = x1 - x0
+slope = dy/dx
+
+ax[2].axline((x0, y0), slope=slope, c="lime")
+
 plt.tight_layout()
 plt.show()
