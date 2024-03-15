@@ -1,3 +1,4 @@
+from skimage.transform import warp, ProjectiveTransform
 from tensorflow.nn import conv2d_transpose, conv2d
 import matplotlib.pyplot as plt
 from skimage import data
@@ -62,6 +63,29 @@ terminator = plt.imread("terminator.jpg") / 255
 
 mask = np.zeros([512, 512, 3])
 mask[:, :256, :] = 1.0
+
+p1 = [202, 173]
+p2 = [338, 175]
+p3 = [216, 323]
+p4 = [330, 323]
+
+before = np.array([p1, p2, p3, p4])
+
+p1 = [169, 166]
+p2 = [243, 148]
+p3 = [189, 245]
+p4 = [266, 223]
+
+after = np.array([p1, p2, p3, p4])
+
+mat = ProjectiveTransform()
+mat.estimate(before, after)
+
+terminator = warp(terminator, mat.inverse, output_shape=terminator.shape)
+mask = warp(mask, mat.inverse, output_shape=mask.shape)
+
+plt.imshow(mask)
+plt.show()
 
 #image *= (1 - np.kaiser(512, 50)[:, None])
 
