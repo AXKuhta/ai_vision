@@ -39,10 +39,6 @@ def up(img):
 
 	return np.concatenate([r, g, b], 2)*4
 
-# #################################################################################
-# Пирамида
-# #################################################################################
-
 def encode(image):
 	g = []
 	l = []
@@ -58,82 +54,62 @@ def encode(image):
 
 	return g, l
 
+
+def make_terminator(image, features):
+	terminator = plt.imread("terminator.jpg") / 255
+
+	mask = np.zeros([512, 512, 3])
+	mask[:, :256, :] = 1.0
+
+	# Черты лица терминатора
+	p1 = [202, 173] # Левый глаз
+	p2 = [338, 175] # Правый глаз
+	p3 = [216, 323] # Левый край рта
+	p4 = [330, 323] # Правый край рта
+
+	before = np.array([p1, p2, p3, p4])
+
+	mat = ProjectiveTransform()
+	mat.estimate(before, features)
+
+	terminator = warp(terminator, mat.inverse, output_shape=terminator.shape)
+	mask = warp(mask, mat.inverse, output_shape=mask.shape)
+
+	mask_g, mask_l = encode(mask)
+	head_g, head_l = encode(head)
+	term_g, term_l = encode(terminator)
+
+	m = mask_g[2]
+	g = term_g[2]*(1 - m) + head_g[2]*m
+
+	m = up(m)
+	l = term_l[2]*(1 - m) + head_l[2]*m
+
+	g = up(g) + l
+
+	m = up(m)
+	l = term_l[1]*(1 - m) + head_l[1]*m
+
+	g = up(g) + l
+
+	m = up(m)
+	l = term_l[0]*(1 - m) + head_l[0]*m
+
+	g = up(g) + l
+
+	return g
+
+
 head = plt.imread("billy-herrington.jpg") / 255
-terminator = plt.imread("terminator.jpg") / 255
-
-mask = np.zeros([512, 512, 3])
-mask[:, :256, :] = 1.0
-
-p1 = [202, 173]
-p2 = [338, 175]
-p3 = [216, 323]
-p4 = [330, 323]
-
-before = np.array([p1, p2, p3, p4])
 
 p1 = [169, 166]
 p2 = [243, 148]
 p3 = [189, 245]
 p4 = [266, 223]
 
-after = np.array([p1, p2, p3, p4])
+features = np.array([p1, p2, p3, p4])
 
-mat = ProjectiveTransform()
-mat.estimate(before, after)
+result = make_terminator(head, features)
 
-terminator = warp(terminator, mat.inverse, output_shape=terminator.shape)
-mask = warp(mask, mat.inverse, output_shape=mask.shape)
-
-plt.imshow(mask)
+plt.imshow(result)
 plt.show()
-
-#image *= (1 - np.kaiser(512, 50)[:, None])
-
-mask_g, mask_l = encode(mask)
-head_g, head_l = encode(head)
-term_g, term_l = encode(terminator)
-
-m = mask_g[2]
-g = term_g[2]*(1 - m) + head_g[2]*m
-
-m = up(m)
-l = term_l[2]*(1 - m) + head_l[2]*m
-
-g = up(g) + l
-
-m = up(m)
-l = term_l[1]*(1 - m) + head_l[1]*m
-
-g = up(g) + l
-
-m = up(m)
-l = term_l[0]*(1 - m) + head_l[0]*m
-
-g = up(g) + l
-
-plt.imshow(g)
-plt.show()
-
-"""
-fig, axes = plt.subplots(1, 4)
-axes[0].imshow(image)
-axes[1].imshow(g1)
-axes[2].imshow(g2)
-axes[3].imshow(g3)
-plt.tight_layout()
-plt.show()
-"""
-
-"""
-d0 = up(g3) + l3
-d1 = up(d0) + l2
-d2 = up(d1) + l1
-
-fig, axes = plt.subplots(1, 4)
-axes[0].imshow(g3)
-axes[1].imshow(d0)
-axes[2].imshow(d1)
-axes[3].imshow(d2)
-plt.tight_layout()
-plt.show()
-"""
