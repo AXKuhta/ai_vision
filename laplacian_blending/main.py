@@ -72,17 +72,17 @@ term_g, term_l = encode(terminator)
 m = mask_g[2]
 g = term_g[2]*(1 - m) + head_g[2]*m
 
-m = mask_g[1]
+m = up(m)
 l = term_l[2]*(1 - m) + head_l[2]*m
 
 g = up(g) + l
 
-m = mask_g[0]
+m = up(m)
 l = term_l[1]*(1 - m) + head_l[1]*m
 
 g = up(g) + l
 
-m = mask
+m = up(m)
 l = term_l[0]*(1 - m) + head_l[0]*m
 
 g = up(g) + l
