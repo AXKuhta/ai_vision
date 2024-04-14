@@ -20,7 +20,7 @@ params = {
 		[0., 1., 0., 0.],
 		[0., 0., 1., 0.],
 		[0., 0.,-1., 1.],
-	])
+	]),
 }
 
 root = Tk()
@@ -65,8 +65,6 @@ def render():
 
 		x = x/_w * w/2 + w/2
 		y = y/_w * h/2 + h/2
-
-		print(x, y, z)
 
 		canvas.create_oval(x, y, x, y, fill="black")
 
@@ -125,11 +123,11 @@ rotation = Scale(pincushion_frame, orient="horizontal", label="XY rotation", len
 rotation.grid()
 
 def update_translation_x(x):
-	params["transform_matrix"][0][3] = float(x)
+	params["projection_matrix"][0][3] = float(x)
 	render()
 
 def update_translation_y(x):
-	params["transform_matrix"][1][3] = float(x)
+	params["projection_matrix"][1][3] = float(x)
 	render()
 
 translation_frame = Frame(controls_frame)
@@ -161,18 +159,24 @@ far.grid()
 near.set(1)
 far.set(10)
 
-#apply = Button(controls_frame, text="Render", command=render)
-#apply.grid(row=0, column=2)
+# http://www.info.hiroshima-cu.ac.jp/~miyazaki/knowledge/teche0092.html
+def update_f1(x):
+	params["projection_matrix"][0][0] = float(x)
+	render()
 
-"""
-# •Entry()
+def update_f2(x):
+	params["projection_matrix"][1][1] = float(x)
+	render()
 
-def ECallBack():  L.configure(text=E.get())
+camera_frame = Frame(controls_frame)
+camera_frame.grid(row=0, column=4)
 
-EnB= Button(top_frame,text="EntryButton",command= ECallBack )
-E  .grid(row=0, column=1)
-E  .focus_set()
-EnB.grid(row=0, column=2)
-"""
+f1 = Scale(camera_frame, orient="horizontal", label="F1", length=150, from_=-2, to=2, resolution=0.1, tickinterval=2, command=update_f1)
+f2 = Scale(camera_frame, orient="horizontal", label="F2", length=150, from_=-2, to=2, resolution=0.1, tickinterval=2, command=update_f2)
+f1.grid()
+f2.grid()
 
-#mainloop()
+f1.set(1)
+f2.set(1)
+
+mainloop()
