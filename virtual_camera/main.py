@@ -12,7 +12,7 @@ params = {
 	"transform_matrix":  np.array([
 		[1., 0., 0., 0.],
 		[0.,-1., 0., 0.],
-		[0., 0., 1.,-5.],
+		[0., 0., 1.,-3.],
 		[0., 0., 0., 1.]
 	]),
 	"projection_matrix":  np.array([ # https://observablehq.com/@esperanc/model-view-and-projection-demo
@@ -45,8 +45,6 @@ def update_matrix(near, far):
 	params["projection_matrix"][2][2] = (near+far)/(near-far)
 	params["projection_matrix"][2][3] = (2*near*far)/(near-far)
 
-update_matrix(1, 10)
-
 def render():
 	canvas.delete("all")
 
@@ -54,10 +52,11 @@ def render():
 
 	for pt in tpts:
 		x, y, z, _w = pt
+		z = z/_w
 
-#		# Near/far clip
-#		if z < 0 or z > 1:
-#			continue
+		# Near/far clip
+		if z < 0 or z > 1:
+			continue
 
 		# Barrel/pincushion
 		r = (x**2 + y**2)**0.5
@@ -66,7 +65,6 @@ def render():
 
 		x = x/_w * w/2 + w/2
 		y = y/_w * h/2 + h/2
-		z = z/_w
 
 		print(x, y, z)
 
@@ -82,6 +80,7 @@ render()
 controls_frame = Frame(root, bg="cyan", pady=3, padx=3)
 controls_frame.pack(side="right")
 
+"""
 grid_frame = Frame(controls_frame, pady=3, padx=3)
 grid_frame.grid(row=0, column=0)
 
@@ -99,6 +98,18 @@ inputs = [
 for i, a in enumerate(inputs):
 	for j, b in enumerate(a):
 		b.grid(row=i, column=j)
+"""
+
+def update_rotation(x):
+	mat = params["transform_matrix"]
+	a = float(x) / (180 / np.pi) - np.pi
+
+	mat[0][0] = np.cos(a)
+	mat[0][1] = -np.sin(a)
+	mat[1][0] = np.sin(a)
+	mat[1][1] = np.cos(a)
+
+	render()
 
 def update_pincushion(x):
 	params["k1"] = float(x)
@@ -107,8 +118,11 @@ def update_pincushion(x):
 pincushion_frame = Frame(controls_frame)
 pincushion_frame.grid(row=0, column=1)
 
-pincushion = Scale(pincushion_frame, orient="horizontal", label="K1", length=150, from_=-0.03, to=0.03, resolution=0.001, tickinterval=0.03, command=update_pincushion)
+pincushion = Scale(pincushion_frame, orient="horizontal", label="K1", length=150, from_=-0.035, to=0.035, resolution=0.001, tickinterval=0.03, command=update_pincushion)
 pincushion.grid()
+
+rotation = Scale(pincushion_frame, orient="horizontal", label="XY rotation", length=150, from_=-180, to=180, resolution=1, tickinterval=180, command=update_rotation)
+rotation.grid()
 
 def update_translation_x(x):
 	params["transform_matrix"][0][3] = float(x)
@@ -121,10 +135,31 @@ def update_translation_y(x):
 translation_frame = Frame(controls_frame)
 translation_frame.grid(row=0, column=2)
 
-translation_x = Scale(translation_frame, orient="horizontal", label="X", length=150, from_=-2, to=2, resolution=0.1, tickinterval=1, command=update_translation_x)
-translation_y = Scale(translation_frame, orient="horizontal", label="Y", length=150, from_=-2, to=2, resolution=0.1, tickinterval=1, command=update_translation_y)
+translation_x = Scale(translation_frame, orient="horizontal", label="Translation X", length=150, from_=-2, to=2, resolution=0.1, tickinterval=1, command=update_translation_x)
+translation_y = Scale(translation_frame, orient="horizontal", label="Translation Y", length=150, from_=-2, to=2, resolution=0.1, tickinterval=1, command=update_translation_y)
 translation_x.grid()
 translation_y.grid()
+
+def update_near(x):
+	params["near"] = float(x)
+	update_matrix(params["near"], params["far"])
+	render()
+
+def update_far(x):
+	params["far"] = float(x)
+	update_matrix(params["near"], params["far"])
+	render()
+
+plane_frame = Frame(controls_frame)
+plane_frame.grid(row=0, column=3)
+
+near = Scale(plane_frame, orient="horizontal", label="Near plane", length=150, from_=0, to=10, resolution=0.1, tickinterval=30, command=update_near)
+far = Scale(plane_frame, orient="horizontal", label="Far plane", length=150, from_=0, to=10, resolution=0.1, tickinterval=30, command=update_far)
+near.grid()
+far.grid()
+
+near.set(1)
+far.set(10)
 
 #apply = Button(controls_frame, text="Render", command=render)
 #apply.grid(row=0, column=2)
