@@ -20,14 +20,6 @@ def debug():
 		plt.imshow(source(t))
 		plt.pause(.1)
 
-
-
-
-
-
-
-
-
 def make_pred(img, keypoints_dict, label):
     plt.clf()
     plt.subplot(1, 3, 1)
@@ -102,10 +94,5 @@ for i in range(frames):
 
 	#make_pred(X, keypoints_dict, label)
 
-	#X = tf.cast(inp, dtype=tf.int32)
-	#print(X)
-
 with open("result.json", "w") as f:
 	json.dump(history, f)
-
-#debug()

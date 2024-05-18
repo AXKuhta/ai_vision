@@ -25,7 +25,7 @@ def v2():
 	b = right_shoulder[:, 0]
 
 	# Сильно смягчить
-	kernel = np.blackman(80)
+	kernel = np.blackman(100)
 	a = np.convolve(a, kernel, mode="same")
 	b = np.convolve(b, kernel, mode="same")
 
@@ -42,6 +42,8 @@ def v2():
 		plt.step(np.arange(len(peaks)), peaks*100, label="peaks")
 		plt.legend()
 		plt.show()
+
+	debug()
 
 	return peaks
 
